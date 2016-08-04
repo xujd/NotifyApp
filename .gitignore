@@ -27,3 +27,10 @@
 *.exe
 *.out
 *.app
+
+#bin obj
+/NotifyApp/bin/
+/NotifyApp/obj/
+
+#user
+*.user
