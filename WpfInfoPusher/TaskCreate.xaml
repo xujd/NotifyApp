@@ -1,0 +1,79 @@
+﻿<Window x:Class="WpfInfoPusher.TaskCreate"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfInfoPusher"
+        xmlns:conv ="clr-namespace:WpfInfoPusher.Converters"
+        mc:Ignorable="d" Icon="./Images/icon.ico"
+        Title="创建任务" Height="340" Width="400" ResizeMode="NoResize">
+    <Window.Resources>
+        <conv:VisibleConverter x:Key="visibleConverter"/>
+    </Window.Resources>
+    <Grid Margin="11">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="auto"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Text="文件目录：" Padding="0,3,0,0" HorizontalAlignment="Right" Grid.Row="0" Margin="5"/>
+        <Grid Grid.Column="1" Margin="5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Button Content="..." x:Name="btnOpen" Click="btnOpen_Click" Width="30" Height="23" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+            <TextBox x:Name="tbFilePath" Text="" Padding="0,3,0,0" Height="23" Margin="1,0" IsReadOnly="True" Grid.Column="1"/>
+        </Grid>
+        <TextBlock Text="FTP服务器：" Visibility="{Binding ElementName=rbLed,Path=IsChecked,Converter={StaticResource visibleConverter}}"
+                   Padding="0,3,0,0" HorizontalAlignment="Right" Grid.Row="1" Margin="5"/>
+        <TextBox x:Name="tbHost" Visibility="{Binding ElementName=rbLed,Path=IsChecked,Converter={StaticResource visibleConverter}}"
+                 Text="" Grid.Row="1" Grid.Column="1" Padding="0,3,0,0" Margin="5" Height="23"></TextBox>
+        <TextBlock Text="FTP用户名：" Visibility="{Binding ElementName=rbLed,Path=IsChecked,Converter={StaticResource visibleConverter}}"
+                   Padding="0,3,0,0" HorizontalAlignment="Right" Grid.Row="2" Margin="5"/>
+        <TextBox x:Name="tbUser" Visibility="{Binding ElementName=rbLed,Path=IsChecked,Converter={StaticResource visibleConverter}}"
+                 Text="" Grid.Row="2" Grid.Column="1" Padding="0,3,0,0" Margin="5" Height="23"></TextBox>
+        <TextBlock Text="FTP密码：" Visibility="{Binding ElementName=rbLed,Path=IsChecked,Converter={StaticResource visibleConverter}}"
+                   Padding="0,3,0,0" HorizontalAlignment="Right" Grid.Row="3" Margin="5"/>
+        <PasswordBox x:Name="tbPassword" Visibility="{Binding ElementName=rbLed,Path=IsChecked,Converter={StaticResource visibleConverter}}"
+                     Password="" Grid.Row="3" Grid.Column="1" Padding="0,3,0,0" Margin="5" Height="23"></PasswordBox>
+        <TextBlock Text="FTP路径：" Visibility="{Binding ElementName=rbLed,Path=IsChecked,Converter={StaticResource visibleConverter}}"
+                   Padding="0,3,0,0" HorizontalAlignment="Right" Grid.Row="4" Margin="5"/>
+        <TextBox x:Name="tbTargetPath" Visibility="{Binding ElementName=rbLed,Path=IsChecked,Converter={StaticResource visibleConverter}}"
+                 Text="" Grid.Row="4" Grid.Column="1" Padding="0,3,0,0" Margin="5" Height="23"></TextBox>
+        <TextBlock Text="FTP文件名：" Visibility="{Binding ElementName=rbLed,Path=IsChecked,Converter={StaticResource visibleConverter}}"
+                   Padding="0,3,0,0" HorizontalAlignment="Right" Grid.Row="5" Margin="5"/>
+        <TextBox x:Name="tbFtpFile" Visibility="{Binding ElementName=rbLed,Path=IsChecked,Converter={StaticResource visibleConverter}}"
+                 Text="" Grid.Row="5" Grid.Column="1" Padding="0,3,0,0" Margin="5" Height="23"></TextBox>
+
+        <TextBlock Text="UDP服务器：" Visibility="{Binding ElementName=rbMsg,Path=IsChecked,Converter={StaticResource visibleConverter}}"
+                   Padding="0,3,0,0" HorizontalAlignment="Right" Grid.Row="1" Margin="5"/>
+        <TextBox x:Name="tbHostUdp" Visibility="{Binding ElementName=rbMsg,Path=IsChecked,Converter={StaticResource visibleConverter}}"
+                 Text="" Grid.Row="1" Grid.Column="1" Padding="0,3,0,0" Margin="5" Height="23"></TextBox>
+        <TextBlock Text="UDP端口：" Visibility="{Binding ElementName=rbMsg,Path=IsChecked,Converter={StaticResource visibleConverter}}"
+                   Padding="0,3,0,0" HorizontalAlignment="Right" Grid.Row="2" Margin="5"/>
+        <TextBox x:Name="tbPortUdp" Visibility="{Binding ElementName=rbMsg,Path=IsChecked,Converter={StaticResource visibleConverter}}"
+                 Text="" Grid.Row="2" Grid.Column="1" Padding="0,3,0,0" Margin="5" Height="23"></TextBox>
+
+        <TextBlock Text="解析算法：" Padding="0,3,0,0" HorizontalAlignment="Right" Grid.Row="6" Margin="5"/>
+        <StackPanel x:Name="spAlg" Orientation="Horizontal" Grid.Row="6" Grid.Column="1" Margin="6" Height="23">
+            <RadioButton x:Name="rbLed" IsChecked="True" Content="LED显示" VerticalAlignment="Center"/>
+            <RadioButton x:Name="rbMsg" Content="报文分析" VerticalAlignment="Center" Margin="11,0,0,0"/>
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Margin="0,11" Grid.Row="7" Grid.ColumnSpan="3" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+            <Button x:Name="btnOK" Click="btnOK_Click" Content="确定" Width="75" Height="23"/>
+            <Button x:Name="btnCancel" Click="btnCancel_Click" Content="取消" Margin="11,0,0,0" Width="75" Height="23"/>
+        </StackPanel>
+    </Grid>
+</Window>

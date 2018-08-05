@@ -1,0 +1,5 @@
+C:\Users\xujd\Documents\WorkSpace\综合呈现\5.贵州\NotifyApp\TcpServer\bin\Debug\TcpServer.exe.config
+C:\Users\xujd\Documents\WorkSpace\综合呈现\5.贵州\NotifyApp\TcpServer\bin\Debug\TcpServer.exe
+C:\Users\xujd\Documents\WorkSpace\综合呈现\5.贵州\NotifyApp\TcpServer\bin\Debug\TcpServer.pdb
+C:\Users\xujd\Documents\WorkSpace\综合呈现\5.贵州\NotifyApp\TcpServer\obj\Debug\TcpServer.exe
+C:\Users\xujd\Documents\WorkSpace\综合呈现\5.贵州\NotifyApp\TcpServer\obj\Debug\TcpServer.pdb

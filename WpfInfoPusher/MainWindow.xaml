@@ -1,0 +1,60 @@
+﻿<Window x:Class="WpfInfoPusher.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfInfoPusher" xmlns:converter ="clr-namespace:WpfInfoPusher.Converters"
+        mc:Ignorable="d" Icon="./Images/icon.ico"
+        Title="信息交换识别推送系统" Height="350" Width="625">
+    <Window.Resources>
+        <converter:ColorConverter x:Key="colorConverter"/>
+        <converter:TaskTypeConverter x:Key="typeConverter"/>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Menu x:Name="menu">
+            <MenuItem Header="首页" Tag="Main" Click="MenuItem_Click"/>
+            <MenuItem Header="创建任务" Tag="Create" Click="MenuItem_Click"/>
+            <MenuItem x:Name="menuStart" Header="开始任务" Tag="Start" Click="MenuItem_Click"/>
+            <MenuItem x:Name="menuStop" Header="停止任务" Visibility="Collapsed" Tag="Stop" Click="MenuItem_Click"/>
+            <MenuItem Header="查看日志" Tag="Log" Click="MenuItem_Click"/>
+            <MenuItem Header="关于" Tag="About" Click="MenuItem_Click"/>
+        </Menu>
+        <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="11,5">
+            <TextBlock x:Name="tbTitle" Text="当前任务列表" FontWeight="Bold"/>
+        </StackPanel>
+        <DataGrid x:Name="dataGrid" AutoGenerateColumns="False" IsReadOnly="True" Grid.Row="2">
+            <DataGrid.Columns>
+                <DataGridTemplateColumn Header=" ">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Image MouseDown="Image_MouseDown" Tag="{Binding}" Width="16" Height="16" VerticalAlignment="Center" HorizontalAlignment="Center" Source="./Images/close.png" Margin="1"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="任务编号" Binding="{Binding TaskId}"/>
+                <DataGridTextColumn Header="任务类型" Binding="{Binding TaskType,Converter={StaticResource typeConverter}}"/>
+                <DataGridTemplateColumn Header="任务状态">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Foreground="{Binding TaskState,Converter={StaticResource colorConverter}}" Text="{Binding TaskState}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="服务器" Binding="{Binding Host}"/>
+                <DataGridTextColumn Header="端口" Binding="{Binding Port}"/>
+                <DataGridTextColumn Header="FTP用户名" Binding="{Binding FtpUser}"/>
+                <DataGridTextColumn Header="FTP路径" Binding="{Binding TargetPath}"/>
+                <DataGridTextColumn Header="FTP文件名" Binding="{Binding FtpFile}"/>
+                <DataGridTextColumn Header="本地文件目录" Binding="{Binding FilePath}"/>
+            </DataGrid.Columns>
+        </DataGrid>
+        <ListBox x:Name="lbLog" Grid.Row="2" Visibility="Collapsed" VirtualizingStackPanel.IsVirtualizing="True" VirtualizingStackPanel.VirtualizationMode="Recycling">
+            
+        </ListBox>
+    </Grid>
+</Window>

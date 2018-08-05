@@ -1,0 +1,10 @@
+C:\Users\xujd\Documents\WorkSpace\综合呈现\5.贵州\NotifyApp\InfoPusher\bin\Debug\InfoPusher.exe.config
+C:\Users\xujd\Documents\WorkSpace\综合呈现\5.贵州\NotifyApp\InfoPusher\bin\Debug\InfoPusher.exe
+C:\Users\xujd\Documents\WorkSpace\综合呈现\5.贵州\NotifyApp\InfoPusher\bin\Debug\InfoPusher.pdb
+C:\Users\xujd\Documents\WorkSpace\综合呈现\5.贵州\NotifyApp\InfoPusher\obj\Debug\InfoPusher.csprojResolveAssemblyReference.cache
+C:\Users\xujd\Documents\WorkSpace\综合呈现\5.贵州\NotifyApp\InfoPusher\obj\Debug\InfoPusher.Form1.resources
+C:\Users\xujd\Documents\WorkSpace\综合呈现\5.贵州\NotifyApp\InfoPusher\obj\Debug\InfoPusher.Properties.Resources.resources
+C:\Users\xujd\Documents\WorkSpace\综合呈现\5.贵州\NotifyApp\InfoPusher\obj\Debug\InfoPusher.csproj.GenerateResource.Cache
+C:\Users\xujd\Documents\WorkSpace\综合呈现\5.贵州\NotifyApp\InfoPusher\obj\Debug\InfoPusher.exe
+C:\Users\xujd\Documents\WorkSpace\综合呈现\5.贵州\NotifyApp\InfoPusher\obj\Debug\InfoPusher.pdb
+C:\Users\xujd\Documents\WorkSpace\综合呈现\5.贵州\NotifyApp\InfoPusher\obj\Debug\InfoPusher.Form2.resources

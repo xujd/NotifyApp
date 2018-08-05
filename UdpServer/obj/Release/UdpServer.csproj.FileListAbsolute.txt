@@ -1,0 +1,6 @@
+C:\Users\xujd\Documents\WorkSpace\综合呈现\5.贵州\NotifyApp\UdpServer\bin\Release\UdpServer.exe.config
+C:\Users\xujd\Documents\WorkSpace\综合呈现\5.贵州\NotifyApp\UdpServer\bin\Release\UdpServer.exe
+C:\Users\xujd\Documents\WorkSpace\综合呈现\5.贵州\NotifyApp\UdpServer\bin\Release\UdpServer.pdb
+C:\Users\xujd\Documents\WorkSpace\综合呈现\5.贵州\NotifyApp\UdpServer\obj\Release\UdpServer.csprojResolveAssemblyReference.cache
+C:\Users\xujd\Documents\WorkSpace\综合呈现\5.贵州\NotifyApp\UdpServer\obj\Release\UdpServer.exe
+C:\Users\xujd\Documents\WorkSpace\综合呈现\5.贵州\NotifyApp\UdpServer\obj\Release\UdpServer.pdb

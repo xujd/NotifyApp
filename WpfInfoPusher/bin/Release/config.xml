@@ -1,0 +1,1 @@
+﻿<?xml version="1.0" encoding="utf-8"?><ArrayOfFtpTask><FtpTask><TaskId>1</TaskId><FilePath>C:\Users\xujd\Documents\Virtual Machines</FilePath><FtpHost>0.0.0.0</FtpHost><FtpUser>test</FtpUser><FtpPassword>0.0.0.0</FtpPassword><TargetPath>datas\</TargetPath><FtpFile>notify.txt</FtpFile></FtpTask></ArrayOfFtpTask>

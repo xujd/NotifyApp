@@ -19,6 +19,12 @@ namespace NotifyApp
         string ftpServerIP;
         string ftpPassword;
         string ftpRemotePath;
+
+        public string FtpServerIP
+        {
+            get { return ftpServerIP; }
+        }
+
         #endregion
 
         /// <summary>  

@@ -87,7 +87,7 @@ namespace NotifyApp
 
             var orderByTime = filesToLoadList.OrderBy(i => i.DateTime);
 
-            foreach(var f in orderByTime)
+            foreach (var f in orderByTime)
             {
                 var fileName = f.FileName;
                 Log.WriteLine(string.Format("下载文件【{0}】", fileName));
@@ -98,14 +98,27 @@ namespace NotifyApp
                 Log.WriteLog(string.Format("解析文件【{0}】", fileName));
                 //解析
                 var inout = Parse(fileName);
-                Log.WriteLine(string.Format("上传文件【{0}】", fileName));
-                Log.WriteLog(string.Format("上传文件【{0}】", fileName));
                 //上传
-                Upload(fileName, inout);
+                if (inout == "-1")
+                {
+                    Log.WriteLine(string.Format("【{0}】找不到匹配的推送规则。", fileName));
+                    Log.WriteLog(string.Format("【{0}】找不到匹配的推送规则。", fileName));
+                }
+                else if (inout == "-2")
+                {
+                    Log.WriteLine(string.Format("【{0}】格式错误，无法解析。", fileName));
+                    Log.WriteLog(string.Format("【{0}】格式错误，无法解析。", fileName));
+                }
+                else
+                {
+                    Log.WriteLine(string.Format("上传文件【{0}】", fileName));
+                    Log.WriteLog(string.Format("上传文件【{0}】", fileName));
+                    Upload(fileName, inout);
+                }
 
                 Thread.Sleep(300);
             }
-            
+
             if (flag)
             {
                 lastTime = maxtime;
@@ -185,7 +198,9 @@ namespace NotifyApp
             //D0201010000H0000001H    43132*****201511130934420020151113093442002015111309350000001100J16155450224AH    43132
 
             if (data.Length < 105)
-                return "-1";
+            {
+                return "-2";
+            }
 
             //0-上行/出库，1-下行/入库
             var inout = data.Substring(18, 1);
@@ -221,6 +236,10 @@ namespace NotifyApp
             }
             File.WriteAllText(path + fileName, result, Encoding.Default);
 
+
+            Log.WriteLine(string.Format("文件【{0}】,解析结果：{1}", fileName, result));
+            Log.WriteLog(string.Format("文件【{0}】,解析结果：{1}", fileName, result));
+
             //更新最新时间
             UpdateTime(type);
 
@@ -253,7 +272,7 @@ namespace NotifyApp
             //    return Param.HostList[fileNo].InOut;
             //}
 
-           //return "未知";
+            //return "未知";
         }
 
         private bool Download(string fileName)
@@ -274,8 +293,13 @@ namespace NotifyApp
             if (helper == null)
             {
                 File.Delete(fileName);
+                Log.WriteLine(string.Format("找不到相关ftp配置，文件名：{0}，出入库类型：{1}。", fileName, inout));
+                Log.WriteLog(string.Format("找不到相关ftp配置，文件名：{0}，出入库类型：{1}。", fileName, inout));
                 return false;
             }
+            Log.WriteLine(string.Format("文件名称：{0}，出入库类型：{1}，目标ftp服务器：{2}。", fileName, inout, helper.FtpServerIP));
+            Log.WriteLog(string.Format("文件名称：{0}，出入库类型：{1}，目标ftp服务器：{2}。", fileName, inout, helper.FtpServerIP));
+
             File.Copy(fileName, "notify.txt");
             bool flag = helper.Upload(@".\notify.txt");
 
