@@ -49,6 +49,12 @@ namespace SerialCommunication
         object objlck = new object();
         CancellationTokenSource cts = new CancellationTokenSource();
 
+        // 沙箱配置
+        private List<TrainBox> boxConfigList = new List<TrainBox>();
+
+        // 版本号
+        private string VERSION = "2.1";  // 1.0
+
         private string dataFile
         {
             get { return Param.APPFILEPATH + @"\data\" + DateTime.Now.ToString("yyyyMMdd") + ".csv"; }
@@ -57,6 +63,15 @@ namespace SerialCommunication
         public MainWindow()
         {
             InitializeComponent();
+
+            //this.GetTrainMessage(new TrainTypeConfig() { AddressNum = 1, TrainType = "DF2", Port = new int[2] { 1, 2 } }, "0x01", "1234");
+
+            //this.UpdateBoxInfo("DF2", "1982", new List<string>()
+            //{
+            //    "198","82","28","132","245","238","123","98",
+            //    "1198","182","128","1132","1245","1238","1123","198",
+            //    "2198","282","228","2132","2245","2238","2123","298",
+            //});
 
             this.Closing += MainWindow_Closing;
 
@@ -191,13 +206,20 @@ namespace SerialCommunication
                                 {
                                     timerCheck.Tick -= handler;
                                     timerCheck.Stop();
-                                    trainNo = GetHexTrainNo(trainNo);
+                                    trainNo = DecimalStrToHex(trainNo);
                                     curTrainNo = trainNo;
                                     //第一次发送第一个地址
                                     // v1.0
-                                    // var message = string.Format("0x{0},0xa0,0x{1},0x{2},0x{3},0x01,0x08,0x0d", curTrainType.Port[0].ToString("x2"), curTrainType.AddressNum.ToString("x2"), trainNo.Substring(0, 2), trainNo.Substring(2, 2));
-                                    // v2.1 2018-8-5 去掉车辆识别状态码，改为7字节
-                                    var message = string.Format("0x{0},0xa0,0x{1},0x{2},0x{3},0x07,0x0d", curTrainType.Port[0].ToString("x2"), curTrainType.AddressNum.ToString("x2"), trainNo.Substring(0, 2), trainNo.Substring(2, 2));
+                                    var message = "";
+                                    if (VERSION == "1.0")
+                                    {
+                                        message = string.Format("0x{0},0xa0,0x{1},0x{2},0x{3},0x01,0x08,0x0d", curTrainType.Port[0].ToString("x2"), curTrainType.AddressNum.ToString("x2"), trainNo.Substring(0, 2), trainNo.Substring(2, 2));
+                                    }
+                                    else if (VERSION == "2.1") // v2.1 2018-8-5 增加沙箱信息
+                                    {
+                                        message = this.GetTrainMessage(curTrainType, curTrainType.Port[0].ToString("x2"), trainNo);
+                                        // string.Format("0x{0},0xa0,0x{1},0x{2},0x{3},0x07,0x0d", curTrainType.Port[0].ToString("x2"), curTrainType.AddressNum.ToString("x2"), trainNo.Substring(0, 2), trainNo.Substring(2, 2));
+                                    }
                                     Log.WriteLog(string.Format("INFO：开始发送识别车辆信息：{0}", message));
                                     this.SendMessage(message);
                                 }
@@ -210,21 +232,23 @@ namespace SerialCommunication
                         index++;
                         if (index == 10 && string.IsNullOrEmpty(trainNo))//20秒，还未更新
                         {
-                            trainNo = "0000";
-                            curTrainNo = trainNo;
-
-                            Log.WriteLog(string.Format("INFO：20秒内车号未识别，使用默认车号-0000"));
                             timerCheck.Tick -= handler;
                             timerCheck.Stop();
 
-                            //第一次发送第一个地址
-                            // v1.0
-                            // var message = string.Format("0x{0},0xa0,0x{1},0x{2},0x{3},0x01,0x08,0x0d", curTrainType.Port[0].ToString("x2"), curTrainType.AddressNum.ToString("x2"), trainNo.Substring(0, 2), trainNo.Substring(2, 2));
-                            // v2.1
-                            var message = string.Format("0x{0},0xa0,0x{1},0x{2},0x{3},0x07,0x0d", curTrainType.Port[0].ToString("x2"), curTrainType.AddressNum.ToString("x2"), trainNo.Substring(0, 2), trainNo.Substring(2, 2));
+                            if (VERSION == "1.0")
+                            {
+                                trainNo = "0000";
+                                curTrainNo = trainNo;
 
-                            Log.WriteLog(string.Format("INFO：开始发送第一次识别信息！信息：{0}", message));
-                            this.SendMessage(message);
+                                Log.WriteLog(string.Format("INFO：20秒内车号未识别，使用默认车号-0000"));
+
+                                //第一次发送第一个地址
+                                // v1.0
+                                var message = string.Format("0x{0},0xa0,0x{1},0x{2},0x{3},0x01,0x08,0x0d", curTrainType.Port[0].ToString("x2"), curTrainType.AddressNum.ToString("x2"), trainNo.Substring(0, 2), trainNo.Substring(2, 2));
+
+                                Log.WriteLog(string.Format("INFO：开始发送第一次识别信息！信息：{0}", message));
+                                this.SendMessage(message);
+                            }
                         }
                     };
                     //启动车号检测
@@ -236,6 +260,53 @@ namespace SerialCommunication
                 //ParseFileAndSendMessage();
                 //END
             }
+        }
+
+        private string GetTrainMessage(TrainTypeConfig trainType, string port, string trainNo)
+        {
+            List<BoxInfo> list = new List<BoxInfo>();
+            // 根据车型和车号取配置
+            var config = this.boxConfigList.Where(i => i.TrainType == trainType.TrainType && i.TrainNo == trainNo).FirstOrDefault();
+            if (config == null)  // 没有时，根据车型取
+            {
+                config = this.boxConfigList.Where(i => i.TrainType == trainType.TrainType).FirstOrDefault();
+            }
+            if (config != null) // 取到配置
+            {
+                list = config.BoxList;
+            }
+            else  // 否则
+            {
+                // Random rand = new Random();
+                for (int i = 1; i < 9; i++)
+                {
+                    list.Add(new BoxInfo() { No = i/*, FrontDist = rand.Next(10, 500), Height = rand.Next(10, 100), Position = rand.Next(500, 2000)*/ });
+                }
+            }
+
+            // 生成发送信息
+            string message = string.Format("0x{0},0xa0,0x{1},0x{2},0x{3}", port, trainType.AddressNum.ToString("x2"), trainNo.Substring(0, 2), trainNo.Substring(2, 2));
+            var msgFragments = new List<string>() { message };
+            var positionList = new List<string>();
+            var heightList = new List<string>();
+            var frontDistList = new List<string>();
+            var endMessage = new List<string>() { "0x37,0x0d" };
+            list.ForEach(item =>
+            {
+                // 位置
+                var hexStr = this.DecimalStrToHex(item.Position.ToString());
+                positionList.Add(string.Format("0x{0},0x{1}", hexStr.Substring(0, 2), hexStr.Substring(2, 2)));
+                // 高度
+                hexStr = this.DecimalStrToHex(item.Height.ToString());
+                heightList.Add(string.Format("0x{0},0x{1}", hexStr.Substring(0, 2), hexStr.Substring(2, 2)));
+                // 前伸
+                hexStr = this.DecimalStrToHex(item.FrontDist.ToString());
+                frontDistList.Add(string.Format("0x{0},0x{1}", hexStr.Substring(0, 2), hexStr.Substring(2, 2)));
+            });
+            var total = msgFragments.Concat(positionList).Concat(heightList).Concat(frontDistList).Concat(endMessage);
+            string result = string.Join(",", total);
+
+            return result;
         }
 
         private List<FileInfo> GetFiles(string filePath, DateTime? time = null)
@@ -309,7 +380,7 @@ namespace SerialCommunication
                             //找到最佳车号
                             if (!string.IsNullOrEmpty(trainNo) && trainNo.Length == 4 && Regex.IsMatch(trainNo, @"^\d{4}$"))
                             {
-                                trainNo = GetHexTrainNo(temps[1]);
+                                trainNo = DecimalStrToHex(temps[1]);
                                 break;
                             }
                         }
@@ -343,7 +414,7 @@ namespace SerialCommunication
             timerCheck.Start();
         }
 
-        private string GetHexTrainNo(string trainNo)
+        private string DecimalStrToHex(string trainNo)
         {
             int a = 0;
             var str = "";
@@ -391,6 +462,32 @@ namespace SerialCommunication
             File.WriteAllText(Param.APPFILEPATH + "/config.xml", str, Encoding.UTF8);
         }
 
+        private void UpdateBoxInfo(string trainType, string trainNo, List<string> boxInfos)
+        {
+            var config = this.boxConfigList.Where(i => i.TrainType == trainType && i.TrainNo == trainNo).FirstOrDefault();
+            if (config == null)
+            {
+                config = new TrainBox() { TrainType = trainType, TrainNo = trainNo };
+                this.boxConfigList.Add(config);
+            }
+
+            config.BoxList.Clear();
+
+            for (int i = 0; i < boxInfos.Count / 3; i++)
+            {
+                config.BoxList.Add(new BoxInfo()
+                {
+                    No = i + 1,
+                    Position = int.Parse(boxInfos[i]),
+                    Height = int.Parse(boxInfos[i + 8]),
+                    FrontDist = int.Parse(boxInfos[i + 16])
+                });
+            }
+
+            var str = SerializeHelper.ScriptSerializeToXML<List<TrainBox>>(this.boxConfigList);
+            File.WriteAllText(Param.APPFILEPATH + "/box_config.xml", str, Encoding.UTF8);
+        }
+
         internal void SaveTrainConfig()
         {
             var str = SerializeHelper.ScriptSerializeToXML<ObservableCollection<TrainTypeConfig>>(trainTypeConfigList);
@@ -407,6 +504,8 @@ namespace SerialCommunication
                 {
                     this.config = temp;
                     SetConfigToView();
+
+                    Log.WriteLog("INFO：读取任务配置完毕。");
                 }
 
                 str = File.ReadAllText(Param.APPFILEPATH + "/train_config.xml");
@@ -417,13 +516,25 @@ namespace SerialCommunication
                     {
                         trainTypeConfigList.Add(item);
                     }
+
+                    Log.WriteLog("INFO：读取车型配置完毕。");
                 }
 
-                Log.WriteLog("INFO：读取任务配置完毕。");
+                if (File.Exists(Param.APPFILEPATH + "/box_config.xml"))
+                {
+                    Log.WriteLog("INFO：读取沙箱配置完毕。");
+                    str = File.ReadAllText(Param.APPFILEPATH + "/box_config.xml");
+                    var temp3 = SerializeHelper.JSONXMLToObject<List<TrainBox>>(str);
+                    if (temp3 != null)
+                    {
+                        this.boxConfigList = temp3;
+                    }
+                }
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
+                Log.WriteLog("ERROR：读取任务配置出错！");
             }
         }
 
@@ -792,6 +903,7 @@ namespace SerialCommunication
         private void parse()
         {
             // 应答数据格式--0x02 0xa0 0x01 0x05 0x0d
+            // 沙箱信息请求--0x02 0xa0 0x00 0x1a 0x85 0x07 0x0d
             // 加沙数据格式--0x02 0xa1 0x1a 0x85 0x01 0x02 0x03 0x04 0x05 0x06 0x07 0x08 0x0e 0x0d
             bool flag = false;
             Log.WriteLog("INFO：数据满足5条，开始解析...");
@@ -800,7 +912,7 @@ namespace SerialCommunication
                 var spList = receivedBytes.Keys.ToList();
                 foreach (var key in spList)
                 {
-                    Log.WriteLog(string.Format("INFO：{0}的数据内容：{1}",key.PortName, string.Join(" ", receivedBytes[key].Select(d => d.ToString("x2")))));
+                    Log.WriteLog(string.Format("INFO：{0}的数据内容：{1}", key.PortName, string.Join(" ", receivedBytes[key].Select(d => d.ToString("x2")))));
                     // 从第二个位置开始
                     for (var i = 1; i < receivedBytes[key].Count; i++)
                     {
@@ -824,7 +936,15 @@ namespace SerialCommunication
                                 }
                                 if (curTrainType != null && curTrainNo.Length == 4 && receivedBytes[key][i - 1] == curTrainType.Port[0] && curTrainType.Port.Length > 1)//第二次发送，发送第二个地址
                                 {
-                                    var message = string.Format("0x{0},0xa0,0x{1},0x{2},0x{3},0x01,0x08,0x0d", curTrainType.Port[1].ToString("x2"), curTrainType.AddressNum.ToString("x2"), curTrainNo.Substring(0, 2), curTrainNo.Substring(2, 2));
+                                    var message = "";
+                                    if (VERSION == "1.0")
+                                    {
+                                        message = string.Format("0x{0},0xa0,0x{1},0x{2},0x{3},0x01,0x08,0x0d", curTrainType.Port[1].ToString("x2"), curTrainType.AddressNum.ToString("x2"), curTrainNo.Substring(0, 2), curTrainNo.Substring(2, 2));
+                                    }
+                                    else if (VERSION == "2.1")
+                                    {
+                                        message = this.GetTrainMessage(this.curTrainType, curTrainType.Port[1].ToString("x2"), curTrainNo);
+                                    }
                                     Log.WriteLog(string.Format("INFO：开始发送第二次识别信息！信息：{0}", message));
                                     this.Dispatcher.Invoke(new Action(() =>
                                     {
@@ -840,70 +960,172 @@ namespace SerialCommunication
                                 flag = true;
                                 break;
                             }
+                            // 判断是否请求沙箱数据，版本2.1
+                            if (VERSION == "2.1" && i + 5 < receivedBytes[key].Count &&
+                                receivedBytes[key][i + 4].ToString("x2").ToLower() == "07" &&
+                                receivedBytes[key][i + 5].ToString("x2").ToLower() == "0d")
+                            {
+                                // 是请求沙箱数据
+                                Log.WriteLog(string.Format("INFO：分析到请求沙箱配置数据！数据内容：{0}", string.Join(" ", receivedBytes[key].Skip(i - 1).Take(7).Select(d => d.ToString("x2")))));
+                                // 上沙车地址
+                                var port = receivedBytes[key][i - 1].ToString("x2").ToLower();
+                                // 车号
+                                var trainNo = receivedBytes[key][i + 2].ToString("x2") + receivedBytes[key][i + 3].ToString("x2");
+                                // 信息
+                                var message = this.GetTrainMessage(this.curTrainType, port, trainNo);
+                                Log.WriteLog(string.Format("INFO：开始发送沙箱配置数据！信息：{0}", message));
+                                this.Dispatcher.Invoke(new Action(() =>
+                                {
+                                    this.SendMessage(message);
+                                }));
+                            }
                         }
                         if (receivedBytes[key][i].ToString("x2").ToLower() == "a1") //疑似加沙数据
                         {
-                            // 继续判断第i+11和i+12位
-                            if (i + 12 < receivedBytes[key].Count &&
-                                receivedBytes[key][i + 11].ToString("x2").ToLower() == "0e" &&
-                                receivedBytes[key][i + 12].ToString("x2").ToLower() == "0d")
+                            if (VERSION == "1.0")
                             {
-                                // 是返回的加沙数据
-                                Log.WriteLog(string.Format("INFO：分析到加沙数据！数据内容：{0}", string.Join(" ", receivedBytes[key].Skip(i - 1).Take(14).Select(d => d.ToString("x2")))));
-
-                                this.Dispatcher.Invoke(new Action(() =>
+                                // 继续判断第i+11和i+12位
+                                if (i + 12 < receivedBytes[key].Count &&
+                                    receivedBytes[key][i + 11].ToString("x2").ToLower() == "0e" &&
+                                    receivedBytes[key][i + 12].ToString("x2").ToLower() == "0d")
                                 {
-                                    FileInfo fi = new FileInfo(dataFile);//新的一天
-                                    if (!fi.Exists)
+                                    // 是返回的加沙数据
+                                    Log.WriteLog(string.Format("INFO：分析到加沙数据！数据内容：{0}", string.Join(" ", receivedBytes[key].Skip(i - 1).Take(14).Select(d => d.ToString("x2")))));
+
+                                    this.Dispatcher.Invoke(new Action(() =>
                                     {
-                                        if (dataTable == null)
+                                        FileInfo fi = new FileInfo(dataFile);//新的一天
+                                        if (!fi.Exists)
                                         {
-                                            Log.WriteLog("ERROR：DataTable为空！");
+                                            if (dataTable == null)
+                                            {
+                                                Log.WriteLog("ERROR：DataTable为空！");
+                                            }
+                                            dataTable.Rows.Clear();
                                         }
-                                        dataTable.Rows.Clear();
-                                    }
 
-                                    DataRow dr = dataTable.NewRow();
-                                    if (dr == null)
+                                        DataRow dr = dataTable.NewRow();
+                                        if (dr == null)
+                                        {
+                                            Log.WriteLog("ERROR：DataRow为空！");
+                                        }
+                                        List<string> datas = new List<string>();
+                                        datas.Add(DateTime.Now.ToString("yyyy-MM-dd"));//日期
+                                        datas.Add(DateTime.Now.ToString("HH:mm:ss"));//时间
+                                        var addressNum = HexToDecimal(receivedBytes[key][i - 1].ToString("x2"));
+                                        datas.Add(addressNum);//上沙车地址
+                                        datas.Add(curTrainType != null ? curTrainType.TrainType : "未取到");
+                                        datas.Add(HexToDecimal(receivedBytes[key][i + 1].ToString("x2") + receivedBytes[key][i + 2].ToString("x2")).PadLeft(4, '0'));//机车车号
+
+                                        int total = 0;
+                                        for (int j = i + 3; j < i + 11; j++)
+                                        {
+                                            var str = HexToDecimal(receivedBytes[key][j].ToString("x2"));
+                                            datas.Add(str);//砂箱1-8加沙量
+                                            total += int.Parse(str);
+                                        }
+                                        datas.Add(total.ToString());//加沙总量
+                                                                    //添加到datatable
+                                        for (int j = 0; j < datas.Count; j++)
+                                        {
+                                            dr[j] = datas[j];
+                                        }
+                                        dataTable.Rows.Add(dr);
+
+                                        //保存
+                                        CSVFileHelper.SaveCSV(dataTable, dataFile);
+                                        Log.WriteLog(string.Format("INFO：接收到从站PLC加沙数据！信息：上沙车地址-{0}|机车车型-{1}|机车车号-{2}|加沙总量-{3}", datas[2], datas[3], datas[4], total));
+
+                                        //发送应答信息
+                                        var ackMessage = string.Format("0x{0},0xa1,0x01,0x05,0x0d", receivedBytes[key][i - 1].ToString("x2"));
+
+                                        this.SendMessage(ackMessage, false);
+                                    }));
+                                    // 跳过已解析到的内容
+                                    receivedBytes[key] = receivedBytes[key].Skip(i + 12 + 1).ToList();
+                                    flag = true;
+                                    break;
+                                }
+                            }
+                            else if (VERSION == "2.1")
+                            {
+                                // 继续判断第i+60和i+61位
+                                if (i + 61 < receivedBytes[key].Count &&
+                                    receivedBytes[key][i + 60].ToString("x2").ToLower() == "3f" &&
+                                    receivedBytes[key][i + 61].ToString("x2").ToLower() == "0d")
+                                {
+                                    // 是返回的加沙数据
+                                    Log.WriteLog(string.Format("INFO：分析到加沙数据！数据内容：{0}", string.Join(" ", receivedBytes[key].Skip(i - 1).Take(63).Select(d => d.ToString("x2")))));
+
+                                    this.Dispatcher.Invoke(new Action(() =>
                                     {
-                                        Log.WriteLog("ERROR：DataRow为空！");
-                                    }
-                                    List<string> datas = new List<string>();
-                                    datas.Add(DateTime.Now.ToString("yyyy-MM-dd"));//日期
-                                    datas.Add(DateTime.Now.ToString("HH:mm:ss"));//时间
-                                    var addressNum = HexToDecimal(receivedBytes[key][i - 1].ToString("x2"));
-                                    datas.Add(addressNum);//上沙车地址
-                                    datas.Add(curTrainType != null ? curTrainType.TrainType: "未取到");
-                                    datas.Add(HexToDecimal(receivedBytes[key][i + 1].ToString("x2") + receivedBytes[key][i + 2].ToString("x2")).PadLeft(4, '0'));//机车车号
+                                        FileInfo fi = new FileInfo(dataFile);//新的一天
+                                        if (!fi.Exists)
+                                        {
+                                            if (dataTable == null)
+                                            {
+                                                Log.WriteLog("ERROR：DataTable为空！");
+                                            }
+                                            dataTable.Rows.Clear();
+                                        }
 
-                                    int total = 0;
-                                    for (int j = i + 3; j < i + 11; j++)
-                                    {
-                                        var str = HexToDecimal(receivedBytes[key][j].ToString("x2"));
-                                        datas.Add(str);//砂箱1-8加沙量
-                                        total += int.Parse(str);
-                                    }
-                                    datas.Add(total.ToString());//加沙总量
-                                                                //添加到datatable
-                                    for (int j = 0; j < datas.Count; j++)
-                                    {
-                                        dr[j] = datas[j];
-                                    }
-                                    dataTable.Rows.Add(dr);
+                                        DataRow dr = dataTable.NewRow();
+                                        if (dr == null)
+                                        {
+                                            Log.WriteLog("ERROR：DataRow为空！");
+                                        }
+                                        List<string> datas = new List<string>();
+                                        datas.Add(DateTime.Now.ToString("yyyy-MM-dd"));//日期
+                                        datas.Add(DateTime.Now.ToString("HH:mm:ss"));//时间
+                                        var addressNum = HexToDecimal(receivedBytes[key][i - 1].ToString("x2"));
+                                        datas.Add(addressNum);//上沙车地址
+                                        // 车型
+                                        var tempNum = int.Parse(HexToDecimal(receivedBytes[key][i + 1].ToString("x2")));
 
-                                    //保存
-                                    CSVFileHelper.SaveCSV(dataTable, dataFile);
-                                    Log.WriteLog(string.Format("INFO：接收到从站PLC加沙数据！信息：上沙车地址-{0}|机车车型-{1}|机车车号-{2}|加沙总量-{3}", datas[2], datas[3], datas[4], total));
+                                        var type = trainTypeConfigList.Where(item => item.Port.Contains(tempNum)).FirstOrDefault();
+                                        var trainType = type != null ? type.TrainType : "未匹配车型";
+                                        datas.Add(trainType);
+                                        var trainNo = HexToDecimal(receivedBytes[key][i + 2].ToString("x2") + receivedBytes[key][i + 3].ToString("x2")).PadLeft(4, '0');
+                                        datas.Add(trainNo);//机车车号
 
-                                    //发送应答信息
-                                    var ackMessage = string.Format("0x{0},0xa1,0x01,0x05,0x0d", receivedBytes[key][i - 1].ToString("x2"));
+                                        int total = 0;
+                                        for (int j = i + 52; j < i + 60; j++)
+                                        {
+                                            var str = HexToDecimal(receivedBytes[key][j].ToString("x2"));
+                                            datas.Add(str);//砂箱1-8加沙量
+                                            total += int.Parse(str);
+                                        }
+                                        datas.Add(total.ToString());//加沙总量
+                                                                    //添加到datatable
+                                        for (int j = 0; j < datas.Count; j++)
+                                        {
+                                            dr[j] = datas[j];
+                                        }
+                                        dataTable.Rows.Add(dr);
 
-                                    this.SendMessage(ackMessage, false);
-                                }));
-                                // 跳过已解析到的内容
-                                receivedBytes[key] = receivedBytes[key].Skip(i + 12 + 1).ToList();
-                                flag = true;
-                                break;
+                                        //保存
+                                        CSVFileHelper.SaveCSV(dataTable, dataFile);
+                                        Log.WriteLog(string.Format("INFO：接收到从站PLC加沙数据！信息：上沙车地址-{0}|机车车型-{1}|机车车号-{2}|加沙总量-{3}", datas[2], datas[3], datas[4], total));
+
+                                        // 更新沙箱位置信息
+                                        List<string> boxInfos = new List<string>();
+                                        for (int j = i + 4; j < i + 52; j+=2)
+                                        {
+                                            var str = HexToDecimal(receivedBytes[key][j].ToString("x2")) + HexToDecimal(receivedBytes[key][j+1].ToString("x2"));
+                                            boxInfos.Add(str);
+                                        }
+                                        this.UpdateBoxInfo(trainType, trainNo, boxInfos);
+
+                                        //发送应答信息
+                                        var ackMessage = string.Format("0x{0},0xa1,0x01,0x05,0x0d", receivedBytes[key][i - 1].ToString("x2"));
+
+                                        this.SendMessage(ackMessage, false);
+                                    }));
+                                    // 跳过已解析到的内容
+                                    receivedBytes[key] = receivedBytes[key].Skip(i + 12 + 1).ToList();
+                                    flag = true;
+                                    break;
+                                }
                             }
                         }
                     }

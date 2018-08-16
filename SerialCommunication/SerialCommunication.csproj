@@ -61,6 +61,7 @@
     </ApplicationDefinition>
     <Compile Include="Converters\StringConverter.cs" />
     <Compile Include="Helpers\CSVFileHelper.cs" />
+    <Compile Include="Models\BoxInfo.cs" />
     <Compile Include="Models\ComConfig.cs" />
     <Compile Include="Models\MsgData.cs" />
     <Compile Include="Models\TrainTypeConfig.cs" />

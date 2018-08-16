@@ -31,6 +31,8 @@
 #bin obj
 /NotifyApp/bin/
 /NotifyApp/obj/
+/SerialCommunication/bin/
+/SerialCommunication/obj/
 
 #user
 *.user
