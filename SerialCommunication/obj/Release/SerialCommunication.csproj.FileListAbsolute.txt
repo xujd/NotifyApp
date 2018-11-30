@@ -40,3 +40,5 @@ D:\WorkSpace\综合呈现\5.贵州\NotifyApp\SerialCommunication\bin\Release\Xce
 C:\Users\xujd\Documents\WorkSpace\项目\NotifyApp\SerialCommunication\bin\Release\SerialCommunication.exe.config
 C:\Users\xujd\Documents\WorkSpace\项目\NotifyApp\SerialCommunication\obj\Release\SerialCommunication.exe
 C:\Users\xujd\Documents\WorkSpace\项目\NotifyApp\SerialCommunication\obj\Release\SerialCommunication.pdb
+D:\WorkSpace\综合呈现\5.贵州\NotifyApp\NotifyApp\SerialCommunication\bin\Release\SerialCommunication.exe.config
+D:\WorkSpace\综合呈现\5.贵州\NotifyApp\NotifyApp\SerialCommunication\obj\Release\SerialCommunication.pdb
