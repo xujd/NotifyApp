@@ -37,38 +37,41 @@ namespace NotifyApp
 
         public static void WriteLine(string message, DateTime? dt = null)
         {
-            lock (Param.LOCK)
-            {
-                if (Param.IsClosing || LogList == null) return;
+            //lock (Param.LOCK)
+            //{
+            if (Param.IsClosing || LogList == null) return;
 
-                if (dt == null)
-                    dt = DateTime.Now;
-                if (LogList.InvokeRequired && !Param.IsClosing)
-                {
-                    LogList.Invoke(new LogDelegate((msg) =>
-                    {
-                        if (!Param.IsClosing)
-                        {
-                            LogList.Items.Insert(0, string.Format("{0}——{1}", dt, message));
-                            if (LogList.Items.Count > 200)
-                            {
-                                LogList.Items.RemoveAt(LogList.Items.Count - 1);
-                            }
-                        }
-                    }), string.Format("{0}——{1}", dt, message));
-                }
-                else
+            if (dt == null)
+                dt = DateTime.Now;
+            if (LogList.InvokeRequired && !Param.IsClosing)
+            {
+                LogList.Invoke(new LogDelegate((msg) =>
                 {
                     if (!Param.IsClosing)
                     {
-                        LogList.Items.Insert(0, string.Format("{0}——{1}", dt, message));
+                        LogList.Items.Insert(0, string.Format("{0}——{1}", dt, msg));
                         if (LogList.Items.Count > 200)
                         {
                             LogList.Items.RemoveAt(LogList.Items.Count - 1);
                         }
                     }
+
+                    Log.WriteLog(msg);
+                }),  message);
+            }
+            else
+            {
+                if (!Param.IsClosing)
+                {
+                    LogList.Items.Insert(0, string.Format("{0}——{1}", dt, message));
+                    if (LogList.Items.Count > 200)
+                    {
+                        LogList.Items.RemoveAt(LogList.Items.Count - 1);
+                    }
+                    Log.WriteLog(message);
                 }
             }
+            // }
         }
 
         public static void WriteLog(string txt, bool flag = false)
@@ -76,13 +79,13 @@ namespace NotifyApp
             try
             {
                 string path = Application.StartupPath + @"\log\" + DateTime.Now.ToString("yyyy-MM") + @"\";
-                if(!Directory.Exists(path))
+                if (!Directory.Exists(path))
                 {
                     Directory.CreateDirectory(path);
                 }
 
                 path += DateTime.Now.ToString("yyyyMMdd") + ".txt";
-                if(!File.Exists(path))
+                if (!File.Exists(path))
                 {
                     File.Create(path);
                 }
@@ -95,7 +98,7 @@ namespace NotifyApp
                 sw.Close();
                 fs.Close();
             }
-            catch( Exception e)
+            catch (Exception e)
             {
                 if (!flag)
                     WriteLog("程序发生异常（WriteLog）。详情：" + e.Message, true);

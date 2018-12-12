@@ -4,7 +4,7 @@ using System.Text;
 using System.IO;
 using System.Net;
 using System.Text.RegularExpressions;
-
+using System.Windows.Forms;
 
 namespace NotifyApp
 {
@@ -48,19 +48,19 @@ namespace NotifyApp
         /// </summary>   
         public bool Upload(string filename)
         {
-            FileInfo fileInf = new FileInfo(filename);
-            FtpWebRequest reqFTP;
-            reqFTP = (FtpWebRequest)FtpWebRequest.Create(new Uri(ftpURI + fileInf.Name));
-            reqFTP.Credentials = new NetworkCredential(ftpUserID, ftpPassword);
-            reqFTP.Method = WebRequestMethods.Ftp.UploadFile;
-            reqFTP.KeepAlive = false;
-            reqFTP.UseBinary = true;
-            reqFTP.ContentLength = fileInf.Length;
-            int buffLength = 2048;
-            byte[] buff = new byte[buffLength];
-            int contentLen;
             try
             {
+                FileInfo fileInf = new FileInfo(filename);
+                FtpWebRequest reqFTP;
+                reqFTP = (FtpWebRequest)FtpWebRequest.Create(new Uri(ftpURI + fileInf.Name));
+                reqFTP.Credentials = new NetworkCredential(ftpUserID, ftpPassword);
+                reqFTP.Method = WebRequestMethods.Ftp.UploadFile;
+                reqFTP.KeepAlive = false;
+                reqFTP.UseBinary = true;
+                reqFTP.ContentLength = fileInf.Length;
+                int buffLength = 2048;
+                byte[] buff = new byte[buffLength];
+                int contentLen;
                 using (FileStream fs = fileInf.OpenRead())
                 {
                     Stream strm = reqFTP.GetRequestStream();
@@ -78,8 +78,7 @@ namespace NotifyApp
             }
             catch (Exception ex)
             {
-                Log.WriteLine(string.Format("{0}-{1}{2}", ex.Message, ftpURI, fileInf.Name));
-                Log.WriteLog(string.Format("{0}-{1}{2}", ex.Message, ftpURI, fileInf.Name));
+                Log.WriteLine(string.Format("{0}-{1}{2}", ex.Message, ftpURI, filename));
                 //throw new Exception(ex.Message);
                 return false;
             }
@@ -92,6 +91,10 @@ namespace NotifyApp
         {
             try
             {
+                if (!Directory.Exists(filePath) && filePath != @".\")
+                {
+                    Directory.CreateDirectory(Application.StartupPath + "\\" + filePath.Substring(2));
+                }
                 FileStream outputStream = new FileStream(filePath + "\\" + fileName, FileMode.Create);
                 FtpWebRequest reqFTP;
                 reqFTP = (FtpWebRequest)FtpWebRequest.Create(new Uri(ftpURI + fileName));
@@ -117,7 +120,6 @@ namespace NotifyApp
             catch (Exception ex)
             {
                 Log.WriteLine(string.Format("{0}-{1}{2}", ex.Message, ftpURI, fileName));
-                Log.WriteLog(string.Format("{0}-{1}{2}", ex.Message, ftpURI, fileName));
             }
         }
 
@@ -146,7 +148,6 @@ namespace NotifyApp
             catch (Exception ex)
             {
                 Log.WriteLine(ex.Message);
-                Log.WriteLog(ex.Message);
             }
         }
 
@@ -174,15 +175,17 @@ namespace NotifyApp
                     }
                     line = reader.ReadLine();
                 }
-                result.Remove(result.ToString().LastIndexOf("\n"), 1);
+                if (result.ToString().Length > 1)
+                {
+                    result.Remove(result.ToString().LastIndexOf("\n"), 1);
+                }
                 reader.Close();
                 response.Close();
-                return result.ToString().Split('\n');
+                return result.ToString().Length > 0 ? result.ToString().Split('\n') : null;
             }
             catch (Exception ex)
             {
                 Log.WriteLine(ex.Message);
-                Log.WriteLog(ex.Message);
             }
 
             return null;

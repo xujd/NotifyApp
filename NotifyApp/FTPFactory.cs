@@ -12,6 +12,11 @@ namespace NotifyApp
             return new FTPHelper(Param.SRC_HOST, Param.SRC_PATH, Param.SRC_USR, Param.SRC_PWD);
         }
 
+        public static FTPHelper CreateSrcFtp(CHostConfig host)
+        {
+            return new FTPHelper(host.Host, host.Path, host.User,host.Password);
+        }
+
         public static FTPHelper CreateDestFtp(string fileName, string inout)
         {
             int dest = Param.CheckFile(fileName, inout);
