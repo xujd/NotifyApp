@@ -12,11 +12,14 @@ namespace NotifyApp
 
         public static bool IsClosing = false;
         public static int INTERVAL = 3;
-
+        public static int IDLE_INTERVAL = 5;
+        // 传感器文件来源
         public static string SRC_HOST = "";
         public static string SRC_USR = "";
         public static string SRC_PWD = "";
         public static string SRC_PATH = "";
+        // 摄像头文件来源
+        public static List<CHostConfig> CHostList = new List<CHostConfig>();
 
         public static List<HostConfig> HostList = new List<HostConfig>();
 
@@ -36,6 +39,7 @@ namespace NotifyApp
             DEFAULT = ((string)asr.GetValue("default", typeof(string))).Replace("\\r\\n", "\r\n");
 
             INTERVAL = (int)asr.GetValue("interval", typeof(int));
+            IDLE_INTERVAL = (int)asr.GetValue("idle_interval", typeof(int));
 
             SRC_HOST = (string)asr.GetValue("src_host", typeof(string));
             SRC_USR = (string)asr.GetValue("src_usr", typeof(string));
@@ -60,10 +64,21 @@ namespace NotifyApp
                 if(key.StartsWith("dest_host"))
                 {
                     var configs = ConfigurationManager.AppSettings[key].Split(spliter1);
-                    var host = HostConfig.Create(configs);
+                    var host = HostConfig.Create(configs, key);
 
                     HostList.Add(host);
                     LastFileTime.Add(DateTime.Now.AddMinutes(-5));
+                }
+            }
+
+            foreach (string key in ConfigurationManager.AppSettings)
+            {
+                if (key.StartsWith("src_host_c"))
+                {
+                    var configs = ConfigurationManager.AppSettings[key].Split(spliter1);
+                    var host = CHostConfig.Create(configs, key);
+
+                    CHostList.Add(host);
                 }
             }
         }
