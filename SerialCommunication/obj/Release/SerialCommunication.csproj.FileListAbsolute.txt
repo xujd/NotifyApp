@@ -38,8 +38,6 @@ C:\Users\xujd\Documents\WorkSpace\综合呈现\5.贵州\NotifyApp\SerialCommunic
 C:\Users\xujd\Documents\WorkSpace\综合呈现\5.贵州\NotifyApp\SerialCommunication\obj\Release\TrainTypeSetting.baml
 D:\WorkSpace\综合呈现\5.贵州\NotifyApp\SerialCommunication\bin\Release\Xceed.Wpf.Toolkit.dll
 C:\Users\xujd\Documents\WorkSpace\项目\NotifyApp\SerialCommunication\bin\Release\SerialCommunication.exe.config
-C:\Users\xujd\Documents\WorkSpace\项目\NotifyApp\SerialCommunication\obj\Release\SerialCommunication.exe
-C:\Users\xujd\Documents\WorkSpace\项目\NotifyApp\SerialCommunication\obj\Release\SerialCommunication.pdb
 C:\Users\xujd\Documents\WorkSpace\项目\NotifyApp\SerialCommunication\bin\Release\SerialCommunication.exe
 C:\Users\xujd\Documents\WorkSpace\项目\NotifyApp\SerialCommunication\bin\Release\SerialCommunication.pdb
 C:\Users\xujd\Documents\WorkSpace\项目\NotifyApp\SerialCommunication\bin\Release\Xceed.Wpf.Toolkit.dll
@@ -56,3 +54,5 @@ C:\Users\xujd\Documents\WorkSpace\项目\NotifyApp\SerialCommunication\obj\Relea
 C:\Users\xujd\Documents\WorkSpace\项目\NotifyApp\SerialCommunication\obj\Release\SerialCommunication.g.resources
 C:\Users\xujd\Documents\WorkSpace\项目\NotifyApp\SerialCommunication\obj\Release\SerialCommunication.Properties.Resources.resources
 C:\Users\xujd\Documents\WorkSpace\项目\NotifyApp\SerialCommunication\obj\Release\SerialCommunication.csproj.GenerateResource.Cache
+C:\Users\xujd\Documents\WorkSpace\项目\NotifyApp\SerialCommunication\obj\Release\SerialCommunication.exe
+C:\Users\xujd\Documents\WorkSpace\项目\NotifyApp\SerialCommunication\obj\Release\SerialCommunication.pdb
