@@ -33,5 +33,15 @@ namespace NotifyApp
 
             return null;
         }
+
+        public static FTPHelper CreateMsgFtp()
+        {
+            if(Param.MSGFILE_FTP != null)
+            {
+                return new FTPHelper(Param.MSGFILE_FTP.Host, Param.MSGFILE_FTP.Path, Param.MSGFILE_FTP.User, Param.MSGFILE_FTP.Password);
+            }
+
+            return null;
+        }
     }
 }

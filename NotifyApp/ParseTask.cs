@@ -22,8 +22,15 @@ namespace NotifyApp
 
         private string curTrain = "";
 
+        FTPHelper msgFileFtp = null;
+
         public void Do()
         {
+            this.msgFileFtp = FTPFactory.CreateMsgFtp();
+            //var test = "D0201010000H0000001H    43132*****201511130934420020151113093442002015111309350000001100J16155450224AH    43132";
+            //var time = test.Substring(66, 14);
+            //CreateMessageFile("1", "1234", "222", "20181213194533");
+            //CreateMessageFile("0", "1234", "222", "20180128194533");
             // 传感器
             Thread thread = new Thread(RunThread);
             thread.Start();
@@ -110,7 +117,7 @@ namespace NotifyApp
                 var temps = item.Substring(0, item.IndexOf("M") + 1).Split(' ');
                 var dates = temps[0].Split('-');
                 var fileTime = DateTime.Parse(string.Format("{0}-{1}-{2} {3}", dates[2], dates[0], dates[1], temps[2]));
-                if (fileTime.AddSeconds(-60) <= cLastTime[host])  // 30秒之内的都判断为一个记录
+                if (fileTime.AddSeconds(-30) <= cLastTime[host])  // 30秒之内的都判断为一个记录
                 {
                     Log.WriteLine(string.Format("摄像头-重复车辆，暂时跳过"));
                     continue;
@@ -178,6 +185,9 @@ namespace NotifyApp
                             try
                             {
                                 UploadCameraFile(fileName, inout[0], host);
+
+                                // 创建消息报文文件
+                                CreateMessageFile(inout[0], inout[1], inout[2], inout[3], inout[4]);
                             }
                             catch (Exception e)
                             {
@@ -282,6 +292,9 @@ namespace NotifyApp
                             try
                             {
                                 Upload(fileName, inout[0]);
+
+                                // 创建消息报文文件
+                                CreateMessageFile(inout[0], inout[1], inout[2], inout[3], inout[4]);
                             }
                             catch (Exception e)
                             {
@@ -315,6 +328,56 @@ namespace NotifyApp
 
             CheckOutofDate();
 
+        }
+
+        int serialNo = 1;
+        DateTime curDate = DateTime.Now.Date;
+        private void CreateMessageFile(string inout, string trainNo, string trainType, string time, string devId)
+        {
+            // 第二日时重置serialNo
+            if(curDate != DateTime.Now.Date)
+            {
+                curDate = DateTime.Now.Date;
+                serialNo = 1;
+            }
+
+            // 验证目录
+            var fileDir = Application.StartupPath + ".\\";
+            if(Param.MSGFILE_DIR != "")
+            {
+                fileDir = Param.MSGFILE_DIR;
+            }
+
+            if (!Directory.Exists(fileDir))
+            {
+                Directory.CreateDirectory(fileDir);
+            }
+            // 文件名称
+            var month = int.Parse(time.Substring(4, 2));
+            var monthStr = month.ToString();
+            if (month == 10)
+            {
+                monthStr = "A";
+            }
+            if (month == 11)
+            {
+                monthStr = "B";
+            }
+            if (month == 12)
+            {
+                monthStr = "C";
+            }
+            var dayStr = time.Substring(6, 2);
+            var fileName = Param.MSGFILE_FORMAT.Replace("mmm", serialNo.ToString().PadLeft(3, '0')).Replace("MDD", monthStr + dayStr).Replace("A", devId);
+
+            // 创建文件
+            File.WriteAllText(fileDir + fileName, string.Format(Param.MESSAGE_FORMAT, trainType, trainNo, time, inout), Encoding.Default);
+
+            // 上传到ftp
+            if(this.msgFileFtp != null)
+            {
+                this.msgFileFtp.Upload(fileDir + fileName);
+            }
         }
 
         private void CheckOutofDate()
@@ -363,7 +426,7 @@ namespace NotifyApp
 
         private string[] Parse(string fileName)
         {
-            string[] retFlag = new string[2];
+            string[] retFlag = new string[5];
 
             string data = "";
             using (StreamReader sr = new StreamReader(fileName, Encoding.Default))
@@ -394,6 +457,8 @@ namespace NotifyApp
 
             //时间
             var time = string.Format("{0}:{1}:{2}", data.Substring(74, 2), data.Substring(76, 2), data.Substring(78, 2));
+            // 20151113093500
+            var fullTime = data.Substring(66, 14);
             //车型
             var trainType = "";
             var trainNo = "";
@@ -434,12 +499,15 @@ namespace NotifyApp
 
             retFlag[0] = inout;
             retFlag[1] = trainNo;
+            retFlag[2] = trainType;
+            retFlag[3] = fullTime;
+            retFlag[4] = data[4].ToString();
             return retFlag;
         }
 
         private string[] ParseCameraFile(string fileName, CHostConfig host)
         {
-            string[] retFlag = new string[2];
+            string[] retFlag = new string[5];
             string data = "";
             using (StreamReader sr = new StreamReader(fileName, Encoding.Default))
             {
@@ -456,10 +524,10 @@ namespace NotifyApp
             //解析完毕，删除
             File.Delete(fileName);
 
-            //HXD3,0798,2018/12/02 19:00:37,出库
+            //HXD3,0798,2018/12/02 19:00:37,出库,1
             char[] spliter1 = new char[] { ',', '，' };
             var datasegs = data.Split(spliter1);
-            if (datasegs.Length < 4)
+            if (datasegs.Length < 5)
             {
                 retFlag[0] = "-2";
                 return retFlag;
@@ -510,6 +578,9 @@ namespace NotifyApp
 
             retFlag[0] = inout;
             retFlag[1] = trainNo;
+            retFlag[2] = Param.GetTrainTypeNo(trainType);
+            retFlag[3] = datasegs[2].Replace("/", "").Replace(" ", "").Replace(":", "");
+            retFlag[4] = datasegs[4];
             return retFlag;
         }
 

@@ -41,6 +41,8 @@ namespace NotifyApp
             ftpUserID = FtpUserID;
             ftpPassword = FtpPassword;
             ftpURI = "ftp://" + ftpServerIP + "/" + ftpRemotePath + "/";
+
+            this.CheckDirectoryAndMakeDir(FtpRemotePath);
         }
 
         /// <summary>  
@@ -282,22 +284,21 @@ namespace NotifyApp
         /// </summary>   
         public void MakeDir(string dirName)
         {
-            FtpWebRequest reqFTP;
             try
             {
-                reqFTP = (FtpWebRequest)FtpWebRequest.Create(new Uri(ftpURI + dirName));
+                string uri = "ftp://" + ftpServerIP + "/" + dirName;
+                var reqFTP = Connect(uri);//连接       
                 reqFTP.Method = WebRequestMethods.Ftp.MakeDirectory;
-                reqFTP.UseBinary = true;
-                reqFTP.Credentials = new NetworkCredential(ftpUserID, ftpPassword);
+                reqFTP.KeepAlive = false;
                 FtpWebResponse response = (FtpWebResponse)reqFTP.GetResponse();
-                Stream ftpStream = response.GetResponseStream();
-                ftpStream.Close();
                 response.Close();
             }
+
             catch (Exception ex)
             {
-                Log.WriteLine(ex.Message);
+                Log.WriteLine("创建文件失败，原因: " + ex.Message);
             }
+
         }
 
         /// <summary>  
@@ -373,6 +374,147 @@ namespace NotifyApp
                 ftpRemotePath += DirectoryName + "/";
             }
             ftpURI = "ftp://" + ftpServerIP + "/" + ftpRemotePath + "/";
+        }
+
+        /// <summary>
+        /// 判断文件的目录是否存,不存则创建
+        /// </summary>
+        /// <param name="destFilePath">本地文件目录</param>
+        public void CheckDirectoryAndMakeDir(string destFilePath)
+        {
+            string fullDir = destFilePath.IndexOf(':') > 0 ? destFilePath.Substring(destFilePath.IndexOf(':') + 1) : destFilePath;
+            fullDir = fullDir.Replace('\\', '/');
+            string[] dirs = fullDir.Split('/');//解析出路径上所有的文件名
+            string curDir = "/";
+            for (int i = 0; i < dirs.Length; i++)//循环查询每一个文件夹
+            {
+                if (dirs[i] == "") continue;
+                string dir = dirs[i];
+                //如果是以/开始的路径,第一个为空 
+                if (dir != null && dir.Length > 0)
+                {
+                    try
+                    {
+
+                        CheckDirectoryAndMakeDir(curDir, dir);
+                        curDir += dir + "/";
+                    }
+                    catch (Exception)
+                    { }
+                }
+            }
+        }
+
+        public void CheckDirectoryAndMakeDir(string rootDir, string remoteDirName)
+        {
+            if (!DirectoryExist(rootDir, remoteDirName))//判断当前目录下子目录是否存在
+                MakeDir(rootDir + "\\" + remoteDirName);
+        }
+
+        /// <summary>
+        /// 判断当前目录下指定的子目录是否存在
+        /// </summary>
+        /// <param name="RemoteDirectoryName">指定的目录名</param>
+        public bool DirectoryExist(string rootDir, string RemoteDirectoryName)
+        {
+            string[] dirList = GetDirectoryList(rootDir);//获取子目录
+            if (dirList.Length > 0)
+            {
+                foreach (string str in dirList)
+                {
+                    if (str.Trim() == RemoteDirectoryName.Trim())
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public string[] GetDirectoryList(string dirName)
+        {
+            string[] drectory = GetFilesDetailList(dirName);
+            List<string> strList = new List<string>();
+            if (drectory.Length > 0)
+            {
+                foreach (string str in drectory)
+                {
+                    if (str.Trim().Length == 0)
+                        continue;
+                    //会有两种格式的详细信息返回
+                    //一种包含<DIR>
+                    //一种第一个字符串是drwxerwxx这样的权限操作符号
+                    //现在写代码包容两种格式的字符串
+                    if (str.Trim().Contains("<DIR>"))
+                    {
+                        strList.Add(str.Substring(39).Trim());
+                    }
+                    else
+                    {
+                        if (str.Trim().Substring(0, 1).ToUpper() == "D")
+                        {
+                            strList.Add(str.Substring(55).Trim());
+                        }
+                    }
+                }
+            }
+            return strList.ToArray();
+        }
+
+        public string[] GetFilesDetailList(string path)
+        {
+            return GetFileList("ftp://" + ftpServerIP + "/" + path, WebRequestMethods.Ftp.ListDirectoryDetails);
+        }
+
+        private string[] GetFileList(string path, string WRMethods)
+        {
+            StringBuilder result = new StringBuilder();
+            try
+            {
+                FtpWebRequest reqFTP = this.Connect(path);//建立FTP连接
+                reqFTP.Method = WRMethods;
+                reqFTP.KeepAlive = false;
+                WebResponse response = reqFTP.GetResponse();
+                StreamReader reader = new StreamReader(response.GetResponseStream(), System.Text.Encoding.Default);//中文文件名
+                string line = reader.ReadLine();
+
+                while (line != null)
+                {
+                    result.Append(line);
+                    result.Append("\n");
+                    line = reader.ReadLine();
+                }
+
+                // to remove the trailing '' '' 
+                if (result.ToString() != "")
+                {
+                    result.Remove(result.ToString().LastIndexOf("\n"), 1);
+                }
+                reader.Close();
+                response.Close();
+                return result.ToString().Split('\n');
+            }
+
+            catch (Exception ex)
+            {
+                Log.WriteLine("获取文件列表失败。原因： " + ex.Message);
+
+                throw ex;
+            }
+        }
+
+        private FtpWebRequest Connect(String path)
+        {
+            // 根据uri创建FtpWebRequest对象
+            FtpWebRequest reqFTP = (FtpWebRequest)FtpWebRequest.Create(new Uri(path));
+            // 指定数据传输类型
+            reqFTP.Method = System.Net.WebRequestMethods.Ftp.UploadFile;
+            reqFTP.UseBinary = true;
+            reqFTP.UsePassive = false;//表示连接类型为主动模式
+            // ftp用户名和密码
+            reqFTP.Credentials = new NetworkCredential(ftpUserID, ftpPassword);
+
+            return reqFTP;
         }
     }
 }
