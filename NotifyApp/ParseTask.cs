@@ -22,11 +22,12 @@ namespace NotifyApp
 
         private string curTrain = "";
 
-        FTPHelper msgFileFtp = null;
+        List<FTPHelper> msgFileFtpList = null;
 
         public void Do()
         {
-            this.msgFileFtp = FTPFactory.CreateMsgFtp();
+            this.msgFileFtpList = FTPFactory.CreateMsgFtpList();
+
             //var test = "D0201010000H0000001H    43132*****201511130934420020151113093442002015111309350000001100J16155450224AH    43132";
             //var time = test.Substring(66, 14);
             //CreateMessageFile("1", "1234", "222", "20181213194533");
@@ -187,7 +188,7 @@ namespace NotifyApp
                                 UploadCameraFile(fileName, inout[0], host);
 
                                 // 创建消息报文文件
-                                CreateMessageFile(inout[0], inout[1], inout[2], inout[3], inout[4]);
+                                CreateMessageFile(inout[0], inout[1], inout[2], inout[3], inout[4], inout[5]);
                             }
                             catch (Exception e)
                             {
@@ -294,7 +295,7 @@ namespace NotifyApp
                                 Upload(fileName, inout[0]);
 
                                 // 创建消息报文文件
-                                CreateMessageFile(inout[0], inout[1], inout[2], inout[3], inout[4]);
+                                CreateMessageFile(inout[0], inout[1], inout[2], inout[3], inout[4], inout[5]);
                             }
                             catch (Exception e)
                             {
@@ -332,8 +333,19 @@ namespace NotifyApp
 
         int serialNo = 1;
         DateTime curDate = DateTime.Now.Date;
-        private void CreateMessageFile(string inout, string trainNo, string trainType, string time, string devId)
+        private void CreateMessageFile(string inout, string trainNo, string trainType, string time, string devId, string segNo)
         {
+            // 车型车号为空时，返回
+            if(string.IsNullOrEmpty(trainNo))
+            {
+                return;
+            }
+
+            if(string.IsNullOrEmpty(trainType))
+            {
+                trainType = "***";
+            }
+
             // 第二日时重置serialNo
             if(curDate != DateTime.Now.Date)
             {
@@ -342,16 +354,27 @@ namespace NotifyApp
             }
 
             // 验证目录
-            var fileDir = Application.StartupPath + ".\\";
-            if(Param.MSGFILE_DIR != "")
+            var fileDir = Application.StartupPath + "\\files\\";
+            //var sharedFileDir = Application.StartupPath + "\\shared\\";
+            if (Param.MSGFILE_DIR != "")
             {
                 fileDir = Param.MSGFILE_DIR;
             }
+
+            //if(Param.MSGFILE_SHAREDDIR != "")
+            //{
+            //    sharedFileDir = Param.MSGFILE_SHAREDDIR;
+            //}
 
             if (!Directory.Exists(fileDir))
             {
                 Directory.CreateDirectory(fileDir);
             }
+
+            //if (!Directory.Exists(sharedFileDir))
+            //{
+            //    Directory.CreateDirectory(sharedFileDir);
+            //}
             // 文件名称
             var month = int.Parse(time.Substring(4, 2));
             var monthStr = month.ToString();
@@ -370,13 +393,23 @@ namespace NotifyApp
             var dayStr = time.Substring(6, 2);
             var fileName = Param.MSGFILE_FORMAT.Replace("mmm", serialNo.ToString().PadLeft(3, '0')).Replace("MDD", monthStr + dayStr).Replace("A", devId);
 
+            serialNo++;
+            if(serialNo == int.MaxValue)
+            {
+                serialNo = 1;
+            }
             // 创建文件
-            File.WriteAllText(fileDir + fileName, string.Format(Param.MESSAGE_FORMAT, trainType, trainNo, time, inout), Encoding.Default);
+            File.WriteAllText(fileDir + fileName, string.Format(Param.MESSAGE_FORMAT, trainType, trainNo, segNo, time, inout), Encoding.Default);
+            // 共享的
+            // File.WriteAllText(sharedFileDir + fileName, string.Format(Param.MESSAGE_FORMAT, trainType, trainNo, time, inout), Encoding.Default);
 
             // 上传到ftp
-            if(this.msgFileFtp != null)
+            if (this.msgFileFtpList != null)
             {
-                this.msgFileFtp.Upload(fileDir + fileName);
+                this.msgFileFtpList.ForEach(item =>
+                {
+                    item.Upload(fileDir + fileName);
+                });
             }
         }
 
@@ -426,9 +459,10 @@ namespace NotifyApp
 
         private string[] Parse(string fileName)
         {
-            string[] retFlag = new string[5];
+            string[] retFlag = new string[6];
 
             string data = "";
+            string segNo = "****";
             using (StreamReader sr = new StreamReader(fileName, Encoding.Default))
             {
                 String line;
@@ -466,11 +500,13 @@ namespace NotifyApp
             {
                 trainType = data.Substring(89, 3).Trim();
                 trainNo = data.Substring(92, 4).Trim();
+                segNo = data.Substring(96, 4).Trim();
             }
             else //T或Q
             {
                 trainType = data.Substring(90, 5).Trim();
                 trainNo = data.Substring(95, 7).Trim();
+                segNo = "****";
             }
             //文件分类
             var type = GetFileType(fileName, inout);
@@ -502,12 +538,13 @@ namespace NotifyApp
             retFlag[2] = trainType;
             retFlag[3] = fullTime;
             retFlag[4] = data[4].ToString();
+            retFlag[5] = segNo;
             return retFlag;
         }
 
         private string[] ParseCameraFile(string fileName, CHostConfig host)
         {
-            string[] retFlag = new string[5];
+            string[] retFlag = new string[6];
             string data = "";
             using (StreamReader sr = new StreamReader(fileName, Encoding.Default))
             {
@@ -581,6 +618,7 @@ namespace NotifyApp
             retFlag[2] = Param.GetTrainTypeNo(trainType);
             retFlag[3] = datasegs[2].Replace("/", "").Replace(" ", "").Replace(":", "");
             retFlag[4] = datasegs[4];
+            retFlag[5] = "****";
             return retFlag;
         }
 

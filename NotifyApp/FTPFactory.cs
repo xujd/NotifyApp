@@ -34,14 +34,16 @@ namespace NotifyApp
             return null;
         }
 
-        public static FTPHelper CreateMsgFtp()
+        public static List<FTPHelper> CreateMsgFtpList()
         {
-            if(Param.MSGFILE_FTP != null)
-            {
-                return new FTPHelper(Param.MSGFILE_FTP.Host, Param.MSGFILE_FTP.Path, Param.MSGFILE_FTP.User, Param.MSGFILE_FTP.Password);
-            }
+            var ftpList = new List<FTPHelper>();
 
-            return null;
+            Param.MSGFILE_FTPList.ForEach(item =>
+            {
+                ftpList.Add(new FTPHelper(item.Host, item.Path, item.User, item.Password));
+            });
+
+            return ftpList;
         }
     }
 }

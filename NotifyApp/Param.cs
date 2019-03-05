@@ -36,7 +36,8 @@ namespace NotifyApp
         public static string MESSAGE_FORMAT = "J{0}{1}0301AH**ZD00000A{2}{3}**";
         public static string MSGFILE_FORMAT = "DxxxAmmm.MDD";
         public static string MSGFILE_DIR = ".\\";
-        public static HostConfig MSGFILE_FTP = null;
+        public static string MSGFILE_SHAREDDIR = ".\\";
+        public static List<HostConfig> MSGFILE_FTPList = new List<HostConfig>();
 
         public static List<string[]> TRAIN_TYPES = new List<string[]>();
 
@@ -61,13 +62,14 @@ namespace NotifyApp
             MESSAGE_FORMAT = (string)asr.GetValue("message_format", typeof(string));
             MSGFILE_FORMAT = (string)asr.GetValue("msgfile_format", typeof(string));
             MSGFILE_DIR = (string)asr.GetValue("msgfile_dir", typeof(string));
-            var msgfile_ftpStr = (string)asr.GetValue("msgfile_ftpdir", typeof(string));
-            if (!string.IsNullOrEmpty(msgfile_ftpStr))
-            {
-                var configs = msgfile_ftpStr.Split(spliter1);
-                var host = HostConfig.Create(configs, "msgfile_ftpdir");
-                MSGFILE_FTP = host;
-            }
+            //MSGFILE_SHAREDDIR = (string)asr.GetValue("msgfile_shareddir", typeof(string));
+            //var msgfile_ftpStr = (string)asr.GetValue("msgfile_ftpdir", typeof(string));
+            //if (!string.IsNullOrEmpty(msgfile_ftpStr))
+            //{
+            //    var configs = msgfile_ftpStr.Split(spliter1);
+            //    var host = HostConfig.Create(configs, "msgfile_ftpdir");
+            //    MSGFILE_FTP = host;
+            //}
 
 
             var inout_map = (string)asr.GetValue("inout_map", typeof(string));
@@ -82,7 +84,7 @@ namespace NotifyApp
 
             foreach (string key in ConfigurationManager.AppSettings)
             {
-                if(key.StartsWith("dest_host"))
+                if (key.StartsWith("dest_host"))
                 {
                     var configs = ConfigurationManager.AppSettings[key].Split(spliter1);
                     var host = HostConfig.Create(configs, key);
@@ -90,16 +92,19 @@ namespace NotifyApp
                     HostList.Add(host);
                     LastFileTime.Add(DateTime.Now.AddMinutes(-5));
                 }
-            }
-
-            foreach (string key in ConfigurationManager.AppSettings)
-            {
                 if (key.StartsWith("src_host_c"))
                 {
                     var configs = ConfigurationManager.AppSettings[key].Split(spliter1);
                     var host = CHostConfig.Create(configs, key);
 
                     CHostList.Add(host);
+                }
+                if (key.StartsWith("msgfile_ftpdir"))
+                {
+                    var configs = ConfigurationManager.AppSettings[key].Split(spliter1);
+                    var host = HostConfig.Create(configs, "msgfile_ftpdir");
+
+                    MSGFILE_FTPList.Add(host);
                 }
             }
 
@@ -129,7 +134,7 @@ namespace NotifyApp
                 }
             }
 
-            return "000";
+            return "***";
         }
 
         public static int CheckFile(string fileName, string inout)
