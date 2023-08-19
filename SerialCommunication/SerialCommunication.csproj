@@ -51,7 +51,7 @@
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="Xceed.Wpf.Toolkit">
-      <HintPath>..\Libs\Xceed.Wpf.Toolkit.dll</HintPath>
+      <HintPath>..\Xceed.Wpf.Toolkit.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -64,6 +64,7 @@
     <Compile Include="Models\BoxInfo.cs" />
     <Compile Include="Models\ComConfig.cs" />
     <Compile Include="Models\MsgData.cs" />
+    <Compile Include="Models\ProcessFlag.cs" />
     <Compile Include="Models\TrainTypeConfig.cs" />
     <Compile Include="SerializeHelper.cs" />
     <Compile Include="TrainTypeSetting.xaml.cs">

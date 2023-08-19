@@ -9,15 +9,28 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace SerialCommunication.Helpers
 {
+    class LogModel
+    {
+        public string Time { get; set; }
+        public string Level { get; set; }
+        public string Content { get; set; }
+
+        public LogModel(string level, string content, string time)
+        {
+            this.Level = level;
+            this.Content = content;
+            this.Time = time;
+        }
+    }
     class Log
     {
-        public static ObservableCollection<string> LogList = null;
+        public static ObservableCollection<LogModel> LogList = null;
 
         public static Dispatcher dispatcher = null;
 
         static Log()
         {
-            LogList = new ObservableCollection<string>();
+            LogList = new ObservableCollection<LogModel>();
         }
 
         public delegate void CleanDelegate();
@@ -27,7 +40,7 @@ namespace SerialCommunication.Helpers
 
         }
 
-        public static void WriteLog(string txt, string subdir = @"\log\", bool flag = false)
+        public static void WriteLog(string level, string txt, string subdir = @"\log\", bool flag = false)
         {
             try
             {
@@ -43,7 +56,9 @@ namespace SerialCommunication.Helpers
                     File.Create(path);
                 }
 
-                string log = DateTime.Now.ToString("HH:mm:ss") + " " + txt;
+
+                var time = DateTime.Now.ToString("HH:mm:ss");
+                string log = string.Format("{0} {1}：{2}", time, level, txt);
 
                 FileStream fs;
                 StreamWriter sw;
@@ -57,7 +72,7 @@ namespace SerialCommunication.Helpers
 
                 Log.dispatcher.Invoke(new Action(() =>
                 {
-                    LogList.Insert(0, log);
+                    LogList.Insert(0, new LogModel(level, txt, time));
                     if (LogList.Count > 150)//保留最新100条记录
                     {
                         while (LogList.Count > 100)
@@ -73,15 +88,13 @@ namespace SerialCommunication.Helpers
             {
                 if (!flag)
                 {
-                    WriteLog("程序发生异常（WriteLog）。详情：" + e.Message, @"\log\", true);
+                    WriteLog("ERR", "程序发生异常（WriteLog）。详情：" + e.Message, @"\log\", true);
                 }
             }
         }
 
         private static void InvokeToList()
         {
-            string log = "";
-            LogList.Insert(0, log);
             if (LogList.Count > 150)//保留最新100条记录
             {
                 while (LogList.Count > 100)

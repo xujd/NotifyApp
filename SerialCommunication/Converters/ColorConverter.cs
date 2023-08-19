@@ -29,4 +29,32 @@ namespace SerialCommunication.Converters
             return value;
         }
     }
+
+
+    public class LogColorConverter : IValueConverter
+    {
+        SolidColorBrush redBrush = new SolidColorBrush(Colors.Red);
+        SolidColorBrush orangeBrush = new SolidColorBrush(Colors.Orange);
+        SolidColorBrush blueBrush = new SolidColorBrush(Colors.Blue);
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value.ToString() == "ERR")
+            {
+                return redBrush;
+            }
+            else if (value.ToString() == "WAN")
+            {
+                return orangeBrush;
+            }
+            else
+            {
+                return blueBrush;
+            }
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return value;
+        }
+    }
 }

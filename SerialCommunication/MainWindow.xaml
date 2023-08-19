@@ -8,6 +8,7 @@
         Title="串口信息交换分析系统" Height="350" Width="625">
     <Window.Resources>
         <converter:ColorConverter x:Key="colorConverter"/>
+        <converter:LogColorConverter x:Key="colorConverter2"/>
         <converter:TaskTypeConverter x:Key="typeConverter"/>
         <Style TargetType="TextBlock">
             <Setter Property="Padding" Value="0,3,0,0"/>
@@ -81,7 +82,15 @@
             <TextBlock x:Name="tbinfo" Text="" Grid.Row="6" Grid.ColumnSpan="4" VerticalAlignment="Bottom"></TextBlock>
         </Grid>
         <ListBox x:Name="lbLog" Grid.Row="2" Visibility="Collapsed" VirtualizingStackPanel.IsVirtualizing="True" VirtualizingStackPanel.VirtualizationMode="Recycling">
-
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Time}"></TextBlock>
+                        <TextBlock Text="{Binding Level}" Foreground="{Binding Level, Converter={StaticResource colorConverter2}}" Width="50" Padding="11,0,0,0"></TextBlock>
+                        <TextBlock Text="{Binding Content}"></TextBlock>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
         </ListBox>
         <DataGrid x:Name="dataGrid" Grid.Row="2" Visibility="Collapsed" IsReadOnly="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
             

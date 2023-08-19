@@ -75,7 +75,7 @@ namespace SerialCommunication.Helpers
             }
             catch (Exception ex)
             {
-                Log.WriteLog(string.Format("{0}-{1}{2}", ex.Message, ftpURI, fileInf.Name));
+                Log.WriteLog("ERR", string.Format("{0}-{1}{2}", ex.Message, ftpURI, fileInf.Name));
                 //throw new Exception(ex.Message);
                 return false;
             }
@@ -112,7 +112,7 @@ namespace SerialCommunication.Helpers
             }
             catch (Exception ex)
             {
-                Log.WriteLog(string.Format("{0}-{1}{2}", ex.Message, ftpURI, fileName));
+                Log.WriteLog("ERR", string.Format("{0}-{1}{2}", ex.Message, ftpURI, fileName));
             }
         }
 
@@ -140,7 +140,7 @@ namespace SerialCommunication.Helpers
             }
             catch (Exception ex)
             {
-                Log.WriteLog(ex.Message);
+                Log.WriteLog("ERR", ex.Message);
             }
         }
 
@@ -175,7 +175,7 @@ namespace SerialCommunication.Helpers
             }
             catch (Exception ex)
             {
-               Log.WriteLog(ex.Message);
+               Log.WriteLog("ERR", ex.Message);
             }
 
             return null;
@@ -208,7 +208,7 @@ namespace SerialCommunication.Helpers
             }
             catch (Exception ex)
             {
-                Log.WriteLog(ex.Message);
+                Log.WriteLog("ERR", ex.Message);
             }
             return list.ToArray();
         }
@@ -245,7 +245,7 @@ namespace SerialCommunication.Helpers
             }
             catch (Exception ex)
             {
-                Log.WriteLog(ex.Message);
+                Log.WriteLog("ERR", ex.Message);
             }
             return result.ToString().Split('\n');
         }
@@ -339,7 +339,7 @@ namespace SerialCommunication.Helpers
             }
             catch (Exception ex)
             {
-                Log.WriteLog(ex.Message);
+                Log.WriteLog("ERR", ex.Message);
             }
             return fileSize;
         }
@@ -364,7 +364,7 @@ namespace SerialCommunication.Helpers
             }
             catch (Exception ex)
             {
-                Log.WriteLog(ex.Message);
+                Log.WriteLog("ERR", ex.Message);
             }
         }
 

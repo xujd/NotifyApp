@@ -10,5 +10,6 @@ namespace SerialCommunication.Models
         public string TrainType { get; set; }
         public int AddressNum { get; set; }
         public int[] Port { get; set; }
+        public string TrainNo { get; set; }
     }
 }

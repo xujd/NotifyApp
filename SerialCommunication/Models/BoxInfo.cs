@@ -31,6 +31,8 @@ namespace SerialCommunication.Models
         public string TrainType { get; set; }
         // 车号
         public string TrainNo { get; set; }
+        // 上沙车地址
+        public int Port { get; set; }
         // 沙箱
         public List<BoxInfo> BoxList { get; set; }
 

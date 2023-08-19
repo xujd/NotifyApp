@@ -19,8 +19,8 @@
         <Image Source="./Images/info.png" Width="32" Height="32" Margin="11,11,5,0"/>
         <TextBlock FontSize="18" Foreground="#0033bc" Margin="0,11,0,0" Text="串口信息交换分析系统" Grid.Column="1"/>
         <StackPanel Orientation="Vertical" Grid.Row="1" Grid.Column="1" Margin="0,22">
-            <TextBlock Text="发布版本：1.0.1" Margin="0,5"/>
-            <TextBlock Text="发布日期：2017年9月23日" Margin="0,5"/>
+            <TextBlock Text="发布版本：2.1.2" Margin="0,5"/>
+            <TextBlock Text="发布日期：2023年8月20日" Margin="0,5"/>
             <TextBlock Text="运行环境：.Net Framework 4.0+" Margin="0,5"/>
         </StackPanel>
         <Rectangle Fill="#f0f0f0" Grid.Row="2" Grid.ColumnSpan="2"/>

@@ -55,7 +55,7 @@ namespace SerialCommunication
             }
             if (configlist.Where(i => i.AddressNum == num).Count() > 0)
             {
-                MessageBox.Show("该地址已被占用！");
+                MessageBox.Show("该车型码已被占用！");
                 return;
             }
 
